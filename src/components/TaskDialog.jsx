@@ -49,7 +49,7 @@ const TaskDialog = ({ open, onClose, initialTask, columns }) => {
     try {
       if (initialTask) {
         // Update the existing task
-        await updateTask({ id: initialTask.id, ...taskData }).unwrap();
+        await updateTask({ id: initialTask._id, ...taskData }).unwrap();
       } else {
         // Create a new task
         await createTask(taskData).unwrap();

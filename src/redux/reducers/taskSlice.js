@@ -5,18 +5,21 @@ const initialState = {
     {
       id: 1,
       title: "Task 1",
+      status: 1,
       description: "description are here 1",
       createdAt: new Date().toISOString().split("T")[0],
     },
     {
       id: 2,
       title: "Task 2",
+      status: 2,
       description: "description are here 2",
       createdAt: new Date().toISOString().split("T")[0],
     },
     {
       id: 3,
       title: "Task 3",
+      status: 3,
       description: "description are here 3",
       createdAt: new Date().toISOString().split("T")[0],
     },

@@ -17,17 +17,15 @@ import { useSelector, useDispatch } from "react-redux";
 import { addTask, updateTask } from "../redux/reducers/taskSlice";
 import TaskCard from "../components/TaskCard";
 import TaskDialog from "../components/TaskDialog";
-import { useGetTasksQuery } from "../redux/api/apiSlice";
 
 const columns = [
-  { id: "To Do", title: "To Do" },
-  { id: "In Progress", title: "In Progress" },
-  { id: "Done", title: "Done" },
+  { id: 1, title: "To Do" },
+  { id: 2, title: "In Progress" },
+  { id: 3, title: "Done" },
 ];
 
 const TaskBoard = () => {
-  const { data: tasks, error, isLoading } = useGetTasksQuery(); // Fetch tasks
-
+  const tasks = useSelector((state) => state.tasks.tasks);
   const dispatch = useDispatch();
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -63,12 +61,12 @@ const TaskBoard = () => {
   };
 
   // Handle Task Search
-  const filteredTasks = tasks?.filter((task) =>
+  const filteredTasks = tasks.filter((task) =>
     task.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Handle Sorting
-  const sortedTasks = filteredTasks?.sort((a, b) => {
+  const sortedTasks = filteredTasks.sort((a, b) => {
     if (sortBy === "title") {
       return a.title.localeCompare(b.title);
     } else if (sortBy === "createdAt") {
@@ -110,11 +108,6 @@ const TaskBoard = () => {
     }
     setOpenDialog(false);
   };
-
-  if (isLoading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error.message}</p>;
-
-  console.log(tasks);
 
   return (
     <Box>
@@ -190,13 +183,13 @@ const TaskBoard = () => {
                         }}
                       >
                         {sortedTasks
-                          .filter((task) => task.status === column.id) // Compare status string with column id
+                          .filter((task) => task.status === column.id)
                           .map((task, index) => (
                             <TaskCard
-                              key={task._id} // Use _id from the backend
+                              key={task.id}
                               task={task}
                               index={index}
-                              onEdit={() => handleEditTask(task)}
+                              onEdit={() => handleEditTask(task)} // Pass edit function
                             />
                           ))}
                         {provided.placeholder}

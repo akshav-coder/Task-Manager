@@ -1,11 +1,16 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Box, Button, TextField, Typography, Container } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useLoginUserMutation } from "../redux/api/apiSlice";
+import { login } from "../redux/reducers/authSlice";
+import { useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 
 const Login = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [loginUser, { isLoading }] = useLoginUserMutation(); // RTK Query mutation hook
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
 
   const onFinish = async (event) => {
     event.preventDefault();
@@ -19,12 +24,19 @@ const Login = () => {
       // Call the login mutation and unwrap to handle success/error
       const user = await loginUser(values).unwrap();
       console.log("Login successful:", user);
+      dispatch(login(user));
       navigate("/"); // Redirect on successful login
     } catch (error) {
       console.error("Login failed:", error);
       alert("Failed to login: " + error.data?.message || "Unknown error");
     }
   };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/"); // Redirect to TaskBoard after login
+    }
+  }, [isAuthenticated, navigate]);
 
   return (
     <Container component="main" maxWidth="xs">

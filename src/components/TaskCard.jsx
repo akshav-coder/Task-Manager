@@ -7,14 +7,18 @@ import {
   Button,
 } from "@mui/material";
 import { Draggable } from "react-beautiful-dnd";
-import { useDispatch } from "react-redux";
-import { deleteTask } from "../redux/reducers/taskSlice";
+import { useDeleteTaskMutation } from "../redux/api/apiSlice";
 
 const TaskCard = ({ task, index, onEdit }) => {
-  const dispatch = useDispatch();
+  const [deleteTask] = useDeleteTaskMutation();
 
-  const handleDelete = () => {
-    dispatch(deleteTask(task.id));
+  const handleDelete = async () => {
+    try {
+      // Use the updateTask API mutation to update the task status
+      await deleteTask(task?._id).unwrap();
+    } catch (error) {
+      console.error("Failed to update task delete", error);
+    }
   };
 
   return (

@@ -14,10 +14,10 @@ import {
 } from "@mui/material";
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import { useSelector, useDispatch } from "react-redux";
-import { addTask, updateTask } from "../redux/reducers/taskSlice";
+import { addTask } from "../redux/reducers/taskSlice"; // Still need addTask for local state
 import TaskCard from "../components/TaskCard";
 import TaskDialog from "../components/TaskDialog";
-import { useGetTasksQuery } from "../redux/api/apiSlice";
+import { useGetTasksQuery, useUpdateTaskMutation } from "../redux/api/apiSlice"; // Import mutation hook
 
 const columns = [
   { status: "To Do", title: "To Do" },
@@ -27,6 +27,7 @@ const columns = [
 
 const TaskBoard = () => {
   const { data: tasks, error, isLoading } = useGetTasksQuery();
+  const [updateTask] = useUpdateTaskMutation(); // Use mutation hook for updateTask
   const dispatch = useDispatch();
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -35,9 +36,8 @@ const TaskBoard = () => {
   const [dialogTask, setDialogTask] = useState(null); // Task to edit
 
   // Drag and Drop functionality
-  const onDragEnd = (result) => {
+  const onDragEnd = async (result) => {
     const { source, destination } = result;
-    console.log(result);
 
     if (!destination) return;
 
@@ -49,16 +49,19 @@ const TaskBoard = () => {
     }
 
     const taskBeingMoved = tasks.find(
-      (task) => task._id === parseInt(result.draggableId)
+      (task) => task._id === result.draggableId
     );
 
     if (taskBeingMoved) {
-      dispatch(
-        updateTask({
-          id: taskBeingMoved.id,
-          updates: { status: destination.droppableId }, // No parseInt here, use the string droppableId directly
-        })
-      );
+      try {
+        // Use the updateTask API mutation to update the task status
+        await updateTask({
+          id: taskBeingMoved._id,
+          status: destination.droppableId, // Update with new status
+        }).unwrap();
+      } catch (error) {
+        console.error("Failed to update task status", error);
+      }
     }
   };
 
@@ -113,8 +116,6 @@ const TaskBoard = () => {
 
   if (isLoading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
-
-  console.log(sortedTasks);
 
   return (
     <Box>

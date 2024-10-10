@@ -18,7 +18,7 @@ const TaskCard = ({ task, index, onEdit }) => {
   };
 
   return (
-    <Draggable draggableId={String(task.id)} index={index}>
+    <Draggable draggableId={task._id} index={index}>
       {(provided) => (
         <Card
           ref={provided.innerRef}

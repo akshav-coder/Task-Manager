@@ -17,6 +17,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { addTask, updateTask } from "../redux/reducers/taskSlice";
 import TaskCard from "../components/TaskCard";
 import TaskDialog from "../components/TaskDialog";
+import { useGetTasksQuery } from "../redux/api/apiSlice";
 
 const columns = [
   { status: "To Do", title: "To Do" },
@@ -25,7 +26,7 @@ const columns = [
 ];
 
 const TaskBoard = () => {
-  const tasks = useSelector((state) => state.tasks.tasks);
+  const { data: tasks, error, isLoading } = useGetTasksQuery();
   const dispatch = useDispatch();
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -36,6 +37,7 @@ const TaskBoard = () => {
   // Drag and Drop functionality
   const onDragEnd = (result) => {
     const { source, destination } = result;
+    console.log(result);
 
     if (!destination) return;
 
@@ -47,7 +49,7 @@ const TaskBoard = () => {
     }
 
     const taskBeingMoved = tasks.find(
-      (task) => task.id === parseInt(result.draggableId)
+      (task) => task._id === parseInt(result.draggableId)
     );
 
     if (taskBeingMoved) {
@@ -61,12 +63,12 @@ const TaskBoard = () => {
   };
 
   // Handle Task Search
-  const filteredTasks = tasks.filter((task) =>
+  const filteredTasks = tasks?.filter((task) =>
     task.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Handle Sorting
-  const sortedTasks = filteredTasks.sort((a, b) => {
+  const sortedTasks = filteredTasks?.sort((a, b) => {
     if (sortBy === "title") {
       return a.title.localeCompare(b.title);
     } else if (sortBy === "createdAt") {
@@ -108,6 +110,11 @@ const TaskBoard = () => {
     }
     setOpenDialog(false);
   };
+
+  if (isLoading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error.message}</p>;
+
+  console.log(sortedTasks);
 
   return (
     <Box>
@@ -186,7 +193,7 @@ const TaskBoard = () => {
                           .filter((task) => task.status === column.status)
                           .map((task, index) => (
                             <TaskCard
-                              key={task.id}
+                              key={task._id}
                               task={task}
                               index={index}
                               onEdit={() => handleEditTask(task)} // Pass edit function

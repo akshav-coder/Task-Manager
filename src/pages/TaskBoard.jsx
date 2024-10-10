@@ -20,9 +20,9 @@ import TaskDialog from "../components/TaskDialog";
 import { useGetTasksQuery } from "../redux/api/apiSlice";
 
 const columns = [
-  { id: 1, title: "To Do" },
-  { id: 2, title: "In Progress" },
-  { id: 3, title: "Done" },
+  { id: "To Do", title: "To Do" },
+  { id: "In Progress", title: "In Progress" },
+  { id: "Done", title: "Done" },
 ];
 
 const TaskBoard = () => {
@@ -114,6 +114,8 @@ const TaskBoard = () => {
   if (isLoading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
 
+  console.log(tasks);
+
   return (
     <Box>
       {/* Search, Sort, and Add Task Controls */}
@@ -188,13 +190,13 @@ const TaskBoard = () => {
                         }}
                       >
                         {sortedTasks
-                          .filter((task) => task.status === column.id)
+                          .filter((task) => task.status === column.id) // Compare status string with column id
                           .map((task, index) => (
                             <TaskCard
-                              key={task.id}
+                              key={task._id} // Use _id from the backend
                               task={task}
                               index={index}
-                              onEdit={() => handleEditTask(task)} // Pass edit function
+                              onEdit={() => handleEditTask(task)}
                             />
                           ))}
                         {provided.placeholder}

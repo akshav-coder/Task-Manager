@@ -11,13 +11,19 @@ import {
   InputLabel,
   FormControl,
 } from "@mui/material";
+import {
+  useCreateTaskMutation,
+  useUpdateTaskMutation,
+} from "../redux/api/apiSlice";
 
-const TaskDialog = ({ open, onClose, onSave, initialTask, columns }) => {
+const TaskDialog = ({ open, onClose, initialTask, columns }) => {
   const [taskData, setTaskData] = useState({
     title: "",
     description: "",
-    status: 1,
   });
+
+  const [createTask, { isLoading: isCreating }] = useCreateTaskMutation(); // Mutation for creating tasks
+  const [updateTask, { isLoading: isUpdating }] = useUpdateTaskMutation(); // Mutation for updating tasks
 
   // Populate dialog fields when editing a task
   useEffect(() => {
@@ -25,14 +31,11 @@ const TaskDialog = ({ open, onClose, onSave, initialTask, columns }) => {
       setTaskData({
         title: initialTask.title,
         description: initialTask.description,
-        status: initialTask.status,
       });
     } else {
-      // Clear form data when adding a new task
       setTaskData({
         title: "",
         description: "",
-        status: 1,
       });
     }
   }, [initialTask]);
@@ -42,8 +45,19 @@ const TaskDialog = ({ open, onClose, onSave, initialTask, columns }) => {
     setTaskData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = () => {
-    onSave(taskData);
+  const handleSave = async () => {
+    try {
+      if (initialTask) {
+        // Update the existing task
+        await updateTask({ id: initialTask.id, ...taskData }).unwrap();
+      } else {
+        // Create a new task
+        await createTask(taskData).unwrap();
+      }
+      onClose(); // Close the dialog after saving
+    } catch (error) {
+      console.error("Error saving task:", error);
+    }
   };
 
   return (
@@ -68,25 +82,15 @@ const TaskDialog = ({ open, onClose, onSave, initialTask, columns }) => {
           value={taskData.description}
           onChange={handleChange}
         />
-        <FormControl fullWidth margin="dense">
-          <InputLabel>Status</InputLabel>
-          <Select
-            name="status"
-            value={taskData.status}
-            onChange={handleChange}
-            label="Status"
-          >
-            {columns.map((column) => (
-              <MenuItem key={column.id} value={column.id}>
-                {column.title}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Close</Button>
-        <Button onClick={handleSave} variant="contained" color="primary">
+        <Button
+          onClick={handleSave}
+          variant="contained"
+          color="primary"
+          disabled={isCreating || isUpdating} // Disable button while saving
+        >
           {initialTask ? "Update" : "Save"}
         </Button>
       </DialogActions>

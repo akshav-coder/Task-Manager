@@ -1,17 +1,14 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
-// Create the API slice
 export const apiSlice = createApi({
   reducerPath: "api",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:5001/api/", // Base URL of the backend
-    prepareHeaders: (headers, { getState }) => {
-      // Get the token from localStorage or from the Redux store
+    baseUrl: "http://localhost:5001/api/",
+    prepareHeaders: (headers) => {
       const token = localStorage.getItem("user")
         ? JSON.parse(localStorage.getItem("user")).token
         : null;
 
-      // If token exists, set the Authorization header
       if (token) {
         headers.set("Authorization", `Bearer ${token}`);
       }
@@ -19,9 +16,11 @@ export const apiSlice = createApi({
       return headers;
     },
   }),
+  tagTypes: ["Task"], // Define a tag type for tasks
   endpoints: (builder) => ({
     getTasks: builder.query({
-      query: () => "tasks", // GET /api/tasks
+      query: () => "tasks",
+      providesTags: ["Task"], // Tag the getTasks query with the "Task" tag
     }),
     createTask: builder.mutation({
       query: (newTask) => ({
@@ -29,6 +28,15 @@ export const apiSlice = createApi({
         method: "POST",
         body: newTask,
       }),
+      invalidatesTags: ["Task"], // Invalidate the "Task" tag to refetch the tasks
+    }),
+    updateTask: builder.mutation({
+      query: ({ id, ...updatedTask }) => ({
+        url: `tasks/${id}`,
+        method: "PUT",
+        body: updatedTask,
+      }),
+      invalidatesTags: ["Task"], // Invalidate the "Task" tag to refetch the tasks
     }),
     loginUser: builder.mutation({
       query: (userCredentials) => ({
@@ -40,6 +48,9 @@ export const apiSlice = createApi({
   }),
 });
 
-// Export hooks for components
-export const { useGetTasksQuery, useCreateTaskMutation, useLoginUserMutation } =
-  apiSlice;
+export const {
+  useGetTasksQuery,
+  useCreateTaskMutation,
+  useUpdateTaskMutation,
+  useLoginUserMutation,
+} = apiSlice;

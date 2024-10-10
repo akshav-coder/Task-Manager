@@ -19,9 +19,9 @@ import TaskCard from "../components/TaskCard";
 import TaskDialog from "../components/TaskDialog";
 
 const columns = [
-  { id: 1, title: "To Do" },
-  { id: 2, title: "In Progress" },
-  { id: 3, title: "Done" },
+  { status: "To Do", title: "To Do" },
+  { status: "In Progress", title: "In Progress" },
+  { status: "Done", title: "Done" },
 ];
 
 const TaskBoard = () => {
@@ -54,7 +54,7 @@ const TaskBoard = () => {
       dispatch(
         updateTask({
           id: taskBeingMoved.id,
-          updates: { status: parseInt(destination.droppableId) },
+          updates: { status: destination.droppableId }, // No parseInt here, use the string droppableId directly
         })
       );
     }
@@ -154,7 +154,7 @@ const TaskBoard = () => {
       <DragDropContext onDragEnd={onDragEnd}>
         <Grid2 container spacing={3}>
           {columns.map((column) => (
-            <Grid2 key={column.id} size={4}>
+            <Grid2 key={column.status} size={4}>
               <Card>
                 <CardContent>
                   <Typography
@@ -170,7 +170,7 @@ const TaskBoard = () => {
                   >
                     {column.title}
                   </Typography>
-                  <Droppable droppableId={String(column.id)}>
+                  <Droppable droppableId={String(column.status)}>
                     {(provided) => (
                       <Box
                         ref={provided.innerRef}
@@ -183,7 +183,7 @@ const TaskBoard = () => {
                         }}
                       >
                         {sortedTasks
-                          .filter((task) => task.status === column.id)
+                          .filter((task) => task.status === column.status)
                           .map((task, index) => (
                             <TaskCard
                               key={task.id}

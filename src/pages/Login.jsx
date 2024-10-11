@@ -1,18 +1,15 @@
 import React, { useEffect } from "react";
 import { Box, Button, TextField, Typography, Container } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { useFormik } from "formik";
+import * as Yup from "yup"; // For form validation
 import {
   useGoogleAuthMutation,
   useLoginUserMutation,
 } from "../redux/api/apiSlice";
 import { login } from "../redux/reducers/authSlice";
-import { useDispatch } from "react-redux";
-import { useSelector } from "react-redux";
-import {
-  GoogleLogin,
-  GoogleOAuthProvider,
-  useGoogleLogin,
-} from "@react-oauth/google"; // Import Google Login
+import { useDispatch, useSelector } from "react-redux";
+import { GoogleLogin } from "@react-oauth/google"; // Import Google Login
 
 const Login = () => {
   const navigate = useNavigate();
@@ -21,44 +18,51 @@ const Login = () => {
   const [googleAuth] = useGoogleAuthMutation();
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
 
-  const onFinish = async (event) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const values = {
-      email: data.get("email"),
-      password: data.get("password"),
-    };
-
-    try {
-      const user = await loginUser(values).unwrap();
-      console.log("Login successful:", user);
-      dispatch(login(user));
-      navigate("/"); // Redirect on successful login
-    } catch (error) {
-      console.error("Login failed:", error);
-      alert("Failed to login: " + error.data?.message || "Unknown error");
-    }
-  };
-
   useEffect(() => {
     if (isAuthenticated) {
       navigate("/"); // Redirect to TaskBoard after login
     }
   }, [isAuthenticated, navigate]);
 
+  const formik = useFormik({
+    initialValues: {
+      email: "",
+      password: "",
+    },
+    validationSchema: Yup.object({
+      email: Yup.string()
+        .email("Invalid email address")
+        .required("Email is required"),
+      password: Yup.string()
+        .min(6, "Password must be at least 6 characters")
+        .required("Password is required"),
+    }),
+    onSubmit: async (values, { setSubmitting }) => {
+      try {
+        const user = await loginUser(values).unwrap();
+        dispatch(login(user));
+        navigate("/"); // Redirect on successful login
+      } catch (error) {
+        console.error("Login failed:", error);
+        alert("Failed to login: " + error.data?.message || "Unknown error");
+      } finally {
+        setSubmitting(false);
+      }
+    },
+  });
+
   const handleGoogleSuccess = async (credentialResponse) => {
-    console.log("Google credential response:", credentialResponse); // Add this for debugging
+    console.log("Google credential response:", credentialResponse);
     try {
       const { credential } = credentialResponse;
 
       // Dispatch the registration API call with Google token
       const response = await googleAuth({
-        token: credential, // Pass the Google token
+        token: credential,
       }).unwrap();
 
       dispatch(login(response));
-
-      console.log("Google sign-in success:", response); // Add this for debugging
+      console.log("Google sign-in success:", response);
 
       setTimeout(() => {
         navigate("/"); // Force navigation after a short delay
@@ -81,35 +85,50 @@ const Login = () => {
         <Typography component="h1" variant="h5">
           Login
         </Typography>
-        <Box component="form" onSubmit={onFinish} noValidate sx={{ mt: 1 }}>
+        <Box
+          component="form"
+          onSubmit={formik.handleSubmit}
+          noValidate
+          sx={{ mt: 1 }}
+        >
           <TextField
             margin="normal"
             required
             fullWidth
             id="email"
-            label="Email Address"
+            placeholder="Email Address"
             name="email"
             autoComplete="email"
             autoFocus
+            value={formik.values.email}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={formik.touched.email && Boolean(formik.errors.email)}
+            helperText={formik.touched.email && formik.errors.email}
           />
           <TextField
             margin="normal"
             required
             fullWidth
             name="password"
-            label="Password"
+            placeholder="Password"
             type="password"
             id="password"
             autoComplete="current-password"
+            value={formik.values.password}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={formik.touched.password && Boolean(formik.errors.password)}
+            helperText={formik.touched.password && formik.errors.password}
           />
           <Button
             type="submit"
             fullWidth
             variant="contained"
             sx={{ mt: 3, mb: 2 }}
-            disabled={isLoading}
+            disabled={isLoading || formik.isSubmitting}
           >
-            {isLoading ? "Logging In..." : "Log In"}
+            {isLoading || formik.isSubmitting ? "Logging In..." : "Log In"}
           </Button>
         </Box>
         <Typography component="p" variant="subtitle1" sx={{ mt: 2 }}>

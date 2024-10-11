@@ -52,6 +52,20 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ["Task"],
     }),
+    registerUser: builder.mutation({
+      query: (newUser) => ({
+        url: "users/register",
+        method: "POST",
+        body: newUser,
+      }),
+    }),
+    googleAuth: builder.mutation({
+      query: (data) => ({
+        url: "users/google",
+        method: "POST",
+        body: data,
+      }),
+    }),
   }),
 });
 
@@ -61,4 +75,6 @@ export const {
   useUpdateTaskMutation,
   useLoginUserMutation,
   useDeleteTaskMutation,
+  useRegisterUserMutation,
+  useGoogleAuthMutation,
 } = apiSlice;

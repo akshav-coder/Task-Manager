@@ -8,16 +8,32 @@ import {
 } from "@mui/material";
 import { Draggable } from "react-beautiful-dnd";
 import { useDeleteTaskMutation } from "../redux/api/apiSlice";
+import { showSnackbar } from "../redux/reducers/snackbarSlice";
+import { useDispatch } from "react-redux";
 
 const TaskCard = ({ task, index, onEdit, onView }) => {
+  const dispatch = useDispatch();
+
   const [deleteTask] = useDeleteTaskMutation();
 
   const handleDelete = async () => {
     try {
       // Use the updateTask API mutation to update the task status
       await deleteTask(task?._id).unwrap();
+      dispatch(
+        showSnackbar({
+          message: "Task Deleted",
+          severity: "success",
+        })
+      );
     } catch (error) {
       console.error("Failed to update task delete", error);
+      dispatch(
+        showSnackbar({
+          message: "Task delete failed",
+          severity: "error",
+        })
+      );
     }
   };
 

@@ -13,8 +13,12 @@ import {
   useCreateTaskMutation,
   useUpdateTaskMutation,
 } from "../redux/api/apiSlice";
+import { useDispatch } from "react-redux";
+import { showSnackbar } from "../redux/reducers/snackbarSlice";
 
 const TaskDialog = ({ open, onClose, initialTask, columns }) => {
+  const dispatch = useDispatch();
+
   const [createTask, { isLoading: isCreating }] = useCreateTaskMutation();
   const [updateTask, { isLoading: isUpdating }] = useUpdateTaskMutation();
 
@@ -35,9 +39,21 @@ const TaskDialog = ({ open, onClose, initialTask, columns }) => {
           await createTask(values).unwrap();
           formik.resetForm();
         }
+        dispatch(
+          showSnackbar({
+            message: "Task Upadated",
+            severity: "success",
+          })
+        );
         onClose();
       } catch (error) {
         console.error("Error saving task:", error);
+        dispatch(
+          showSnackbar({
+            message: "Task Upadate Failed",
+            severity: "error",
+          })
+        );
       }
     },
   });

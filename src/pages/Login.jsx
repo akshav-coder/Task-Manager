@@ -71,7 +71,6 @@ const Login = () => {
   });
 
   const handleGoogleSuccess = async (credentialResponse) => {
-    console.log("Google credential response:", credentialResponse);
     try {
       const { credential } = credentialResponse;
 
@@ -84,7 +83,6 @@ const Login = () => {
       dispatch(
         showSnackbar({ message: "Logged in successfully", severity: "success" })
       );
-      console.log("Google sign-in success:", response);
 
       setTimeout(() => {
         navigate("/"); // Force navigation after a short delay

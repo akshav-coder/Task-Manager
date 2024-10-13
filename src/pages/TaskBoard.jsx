@@ -13,12 +13,13 @@ import {
   Grid2,
 } from "@mui/material";
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 import { addTask } from "../redux/reducers/taskSlice";
 import TaskCard from "../components/TaskCard";
 import TaskDialog from "../components/TaskDialog";
 import { useGetTasksQuery, useUpdateTaskMutation } from "../redux/api/apiSlice";
 import TaskViewDetails from "./TaskViewDetails";
+import { showSnackbar } from "../redux/reducers/snackbarSlice";
 
 const columns = [
   { status: "To Do", title: "To Do" },
@@ -27,15 +28,22 @@ const columns = [
 ];
 
 const TaskBoard = () => {
-  const { data: tasks, error, isLoading, refetch } = useGetTasksQuery();
+  const { data: fetchedTasks, error, isLoading, refetch } = useGetTasksQuery();
   const [updateTask] = useUpdateTaskMutation();
   const dispatch = useDispatch();
 
+  const [tasks, setTasks] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogTask, setDialogTask] = useState(null);
   const [taskView, setTaskView] = useState(false);
+
+  useEffect(() => {
+    if (fetchedTasks) {
+      setTasks(fetchedTasks);
+    }
+  }, [fetchedTasks]);
 
   const onDragEnd = async (result) => {
     const { source, destination } = result;
@@ -54,13 +62,43 @@ const TaskBoard = () => {
     );
 
     if (taskBeingMoved) {
+      // Optimistically update the task in the local state
+      const updatedTasks = tasks.map((task) =>
+        task._id === taskBeingMoved._id
+          ? { ...task, status: destination.droppableId }
+          : task
+      );
+      setTasks(updatedTasks);
+
       try {
         await updateTask({
           id: taskBeingMoved._id,
           status: destination.droppableId,
         }).unwrap();
+
+        dispatch(
+          showSnackbar({
+            message: "Task moved",
+            severity: "success",
+          })
+        );
       } catch (error) {
         console.error("Failed to update task status", error);
+
+        dispatch(
+          showSnackbar({
+            message: "Task move failed",
+            severity: "error",
+          })
+        );
+
+        // Revert the task back to its original state if the API call fails
+        const revertedTasks = tasks.map((task) =>
+          task._id === taskBeingMoved._id
+            ? { ...task, status: source.droppableId }
+            : task
+        );
+        setTasks(revertedTasks);
       }
     }
   };

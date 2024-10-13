@@ -8,8 +8,9 @@ import {
   useLoginUserMutation,
 } from "../redux/api/apiSlice";
 import { login } from "../redux/reducers/authSlice";
+import { showSnackbar } from "../redux/reducers/snackbarSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { GoogleLogin } from "@react-oauth/google"; // Import Google Login
+import { GoogleLogin } from "@react-oauth/google"; // Import Google
 
 const Login = () => {
   const navigate = useNavigate();
@@ -41,6 +42,12 @@ const Login = () => {
       try {
         const user = await loginUser(values).unwrap();
         dispatch(login(user));
+        dispatch(
+          showSnackbar({
+            message: "Logged in successfully",
+            severity: "success",
+          })
+        );
         navigate("/"); // Redirect on successful login
       } catch (error) {
         console.error("Login failed:", error);
@@ -62,6 +69,9 @@ const Login = () => {
       }).unwrap();
 
       dispatch(login(response));
+      dispatch(
+        showSnackbar({ message: "Logged in successfully", severity: "success" })
+      );
       console.log("Google sign-in success:", response);
 
       setTimeout(() => {

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Card,
@@ -27,7 +27,7 @@ const columns = [
 ];
 
 const TaskBoard = () => {
-  const { data: tasks, error, isLoading } = useGetTasksQuery();
+  const { data: tasks, error, isLoading, refetch } = useGetTasksQuery();
   const [updateTask] = useUpdateTaskMutation();
   const dispatch = useDispatch();
 
@@ -111,6 +111,10 @@ const TaskBoard = () => {
     }
     setOpenDialog(false);
   };
+
+  useEffect(() => {
+    refetch();
+  }, []);
 
   if (isLoading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;

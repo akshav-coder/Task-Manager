@@ -30,20 +30,18 @@ const TaskDialog = ({ open, onClose, initialTask, columns }) => {
     onSubmit: async (values) => {
       try {
         if (initialTask) {
-          // Update the existing task
           await updateTask({ id: initialTask._id, ...values }).unwrap();
         } else {
-          // Create a new task
           await createTask(values).unwrap();
+          formik.resetForm();
         }
-        onClose(); // Close the dialog after saving
+        onClose();
       } catch (error) {
         console.error("Error saving task:", error);
       }
     },
   });
 
-  // Populate dialog fields when editing a task
   useEffect(() => {
     if (initialTask) {
       formik.setValues({
@@ -93,7 +91,7 @@ const TaskDialog = ({ open, onClose, initialTask, columns }) => {
             type="submit"
             variant="contained"
             color="primary"
-            disabled={isCreating || isUpdating} // Disable button while saving
+            disabled={isCreating || isUpdating}
           >
             {initialTask ? "Update" : "Save"}
           </Button>

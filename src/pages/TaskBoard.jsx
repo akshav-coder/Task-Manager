@@ -18,6 +18,8 @@ import { addTask } from "../redux/reducers/taskSlice"; // Still need addTask for
 import TaskCard from "../components/TaskCard";
 import TaskDialog from "../components/TaskDialog";
 import { useGetTasksQuery, useUpdateTaskMutation } from "../redux/api/apiSlice"; // Import mutation hook
+import { Flag } from "@mui/icons-material";
+import TaskViewDetails from "./TaskViewDetails";
 
 const columns = [
   { status: "To Do", title: "To Do" },
@@ -34,6 +36,7 @@ const TaskBoard = () => {
   const [sortBy, setSortBy] = useState(""); // Sorting state
   const [openDialog, setOpenDialog] = useState(false); // For Add/Edit dialog
   const [dialogTask, setDialogTask] = useState(null); // Task to edit
+  const [taskView, setTaskView] = useState(false);
 
   // Drag and Drop functionality
   const onDragEnd = async (result) => {
@@ -90,6 +93,11 @@ const TaskBoard = () => {
   const handleEditTask = (task) => {
     setDialogTask(task); // Set the task to edit
     setOpenDialog(true);
+  };
+
+  const handleView = (task) => {
+    setTaskView(true);
+    setDialogTask(task);
   };
 
   // Handle Save Task (Add or Update)
@@ -158,6 +166,12 @@ const TaskBoard = () => {
         columns={columns}
       />
 
+      <TaskViewDetails
+        open={taskView}
+        onClose={() => setTaskView(false)}
+        taskDetails={dialogTask}
+      />
+
       {/* Task Board */}
       <DragDropContext onDragEnd={onDragEnd}>
         <Grid2 container spacing={3}>
@@ -197,7 +211,8 @@ const TaskBoard = () => {
                               key={task._id}
                               task={task}
                               index={index}
-                              onEdit={() => handleEditTask(task)} // Pass edit function
+                              onEdit={() => handleEditTask(task)}
+                              onView={() => handleView(task)}
                             />
                           ))}
                         {provided.placeholder}

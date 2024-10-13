@@ -9,7 +9,7 @@ import {
 import { Draggable } from "react-beautiful-dnd";
 import { useDeleteTaskMutation } from "../redux/api/apiSlice";
 
-const TaskCard = ({ task, index, onEdit }) => {
+const TaskCard = ({ task, index, onEdit, onView }) => {
   const [deleteTask] = useDeleteTaskMutation();
 
   const handleDelete = async () => {
@@ -64,7 +64,7 @@ const TaskCard = ({ task, index, onEdit }) => {
             <Button variant="contained" size="small" onClick={onEdit}>
               Edit
             </Button>
-            <Button variant="contained" size="small">
+            <Button variant="contained" size="small" onClick={onView}>
               View Details
             </Button>
           </CardActions>

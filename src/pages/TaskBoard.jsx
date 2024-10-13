@@ -14,11 +14,10 @@ import {
 } from "@mui/material";
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import { useSelector, useDispatch } from "react-redux";
-import { addTask } from "../redux/reducers/taskSlice"; // Still need addTask for local state
+import { addTask } from "../redux/reducers/taskSlice";
 import TaskCard from "../components/TaskCard";
 import TaskDialog from "../components/TaskDialog";
-import { useGetTasksQuery, useUpdateTaskMutation } from "../redux/api/apiSlice"; // Import mutation hook
-import { Flag } from "@mui/icons-material";
+import { useGetTasksQuery, useUpdateTaskMutation } from "../redux/api/apiSlice";
 import TaskViewDetails from "./TaskViewDetails";
 
 const columns = [
@@ -29,16 +28,15 @@ const columns = [
 
 const TaskBoard = () => {
   const { data: tasks, error, isLoading } = useGetTasksQuery();
-  const [updateTask] = useUpdateTaskMutation(); // Use mutation hook for updateTask
+  const [updateTask] = useUpdateTaskMutation();
   const dispatch = useDispatch();
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState(""); // Sorting state
-  const [openDialog, setOpenDialog] = useState(false); // For Add/Edit dialog
-  const [dialogTask, setDialogTask] = useState(null); // Task to edit
+  const [sortBy, setSortBy] = useState("");
+  const [openDialog, setOpenDialog] = useState(false);
+  const [dialogTask, setDialogTask] = useState(null);
   const [taskView, setTaskView] = useState(false);
 
-  // Drag and Drop functionality
   const onDragEnd = async (result) => {
     const { source, destination } = result;
 
@@ -57,10 +55,9 @@ const TaskBoard = () => {
 
     if (taskBeingMoved) {
       try {
-        // Use the updateTask API mutation to update the task status
         await updateTask({
           id: taskBeingMoved._id,
-          status: destination.droppableId, // Update with new status
+          status: destination.droppableId,
         }).unwrap();
       } catch (error) {
         console.error("Failed to update task status", error);
@@ -68,12 +65,10 @@ const TaskBoard = () => {
     }
   };
 
-  // Handle Task Search
   const filteredTasks = tasks?.filter((task) =>
     task.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Handle Sorting
   const sortedTasks = filteredTasks?.sort((a, b) => {
     if (sortBy === "title") {
       return a.title.localeCompare(b.title);
@@ -83,15 +78,13 @@ const TaskBoard = () => {
     return 0;
   });
 
-  // Open Add Task Dialog
   const handleOpenDialog = () => {
-    setDialogTask(null); // Reset to null for adding new task
+    setDialogTask(null);
     setOpenDialog(true);
   };
 
-  // Open Edit Task Dialog
   const handleEditTask = (task) => {
-    setDialogTask(task); // Set the task to edit
+    setDialogTask(task);
     setOpenDialog(true);
   };
 
@@ -100,10 +93,8 @@ const TaskBoard = () => {
     setDialogTask(task);
   };
 
-  // Handle Save Task (Add or Update)
   const handleSaveTask = (taskData) => {
     if (dialogTask) {
-      // Edit existing task
       dispatch(
         updateTask({
           id: dialogTask.id,
@@ -111,11 +102,10 @@ const TaskBoard = () => {
         })
       );
     } else {
-      // Add new task
       const newTaskWithId = {
         ...taskData,
         id: tasks.length + 1,
-        createdAt: new Date().toISOString().split("T")[0],
+        createdAt: new Date().toISOString(),
       };
       dispatch(addTask(newTaskWithId));
     }
@@ -127,7 +117,6 @@ const TaskBoard = () => {
 
   return (
     <Box>
-      {/* Search, Sort, and Add Task Controls */}
       <Button
         variant="contained"
         color="primary"
@@ -136,33 +125,43 @@ const TaskBoard = () => {
       >
         Add Task
       </Button>
-      <Box display="flex" justifyContent="space-between" mb={2}>
+      <Box
+        display="flex"
+        justifyContent={"space-between"}
+        flexDirection={{ xs: "column", md: "row" }}
+        alignItems={"flex-end"}
+        mb={2}
+      >
         <TextField
           label="Search Tasks"
           variant="outlined"
           size="small"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
+          sx={{ mb: { xs: 2, md: 0 }, width: { xs: "100%", md: "auto" } }}
         />
 
-        <FormControl sx={{ minWidth: 150 }}>
-          <Select
-            size="small"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-          >
-            <MenuItem value="title">Title</MenuItem>
-            <MenuItem value="createdAt">Recent</MenuItem>
-          </Select>
-        </FormControl>
+        <Box display="flex" flexDirection="column" ml={{ md: 2 }}>
+          <InputLabel id="filter-label">Sort By</InputLabel>
+          <FormControl sx={{ minWidth: 150 }}>
+            <Select
+              labelId="filter-label"
+              size="small"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+            >
+              <MenuItem value="title">Title</MenuItem>
+              <MenuItem value="createdAt">Recent</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
       </Box>
 
-      {/* Task Dialog for Add/Edit */}
       <TaskDialog
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         onSave={handleSaveTask}
-        initialTask={dialogTask} // null for add, task for edit
+        initialTask={dialogTask}
         columns={columns}
       />
 
@@ -172,11 +171,10 @@ const TaskBoard = () => {
         taskDetails={dialogTask}
       />
 
-      {/* Task Board */}
       <DragDropContext onDragEnd={onDragEnd}>
         <Grid2 container spacing={3}>
           {columns.map((column) => (
-            <Grid2 key={column.status} size={4}>
+            <Grid2 key={column.status} size={{ xs: 12, md: 4, sm: 6 }}>
               <Card>
                 <CardContent>
                   <Typography
@@ -201,7 +199,7 @@ const TaskBoard = () => {
                           flexGrow: 1,
                           overflowY: "auto",
                           marginTop: "10px",
-                          height: "620px",
+                          height: { xs: "400px", md: "620px" },
                         }}
                       >
                         {sortedTasks

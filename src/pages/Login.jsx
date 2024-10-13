@@ -38,7 +38,7 @@ const Login = () => {
         .min(6, "Password must be at least 6 characters")
         .required("Password is required"),
     }),
-    onSubmit: async (values, { setSubmitting }) => {
+    onSubmit: async (values, { setSubmitting, setFieldError }) => {
       try {
         const user = await loginUser(values).unwrap();
         dispatch(login(user));
@@ -51,7 +51,19 @@ const Login = () => {
         navigate("/"); // Redirect on successful login
       } catch (error) {
         console.error("Login failed:", error);
-        alert("Failed to login: " + error.data?.message || "Unknown error");
+
+        if (error.data?.data) {
+          // Set field errors from API response
+          const { email, password } = error.data.data;
+          if (email) {
+            setFieldError("email", email);
+          }
+          if (password) {
+            setFieldError("password", password);
+          }
+        } else {
+          alert("Failed to login: " + (error.data?.message || "Unknown error"));
+        }
       } finally {
         setSubmitting(false);
       }
@@ -79,6 +91,12 @@ const Login = () => {
       }, 100);
     } catch (err) {
       console.error("Failed to sign up with Google:", err);
+      dispatch(
+        showSnackbar({
+          message: err?.data?.message || "Failed to sign up with Google",
+          severity: "error",
+        })
+      );
     }
   };
 

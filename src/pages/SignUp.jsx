@@ -15,9 +15,12 @@ import {
   useRegisterUserMutation,
 } from "../redux/api/apiSlice";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google"; // Import Google Login
+import { useDispatch } from "react-redux";
+import { showSnackbar } from "../redux/reducers/snackbarSlice";
 
 const SignUp = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [registerUser, { isLoading, error }] = useRegisterUserMutation();
   const [googleAuth] = useGoogleAuthMutation();
 
@@ -45,18 +48,33 @@ const SignUp = () => {
       confirmPassword: "",
     },
     validationSchema: validationSchema,
-    onSubmit: async (values) => {
+    onSubmit: async (values, { setFieldError }) => {
       try {
-        // Dispatch the registration API call
         await registerUser({
           email: values.email,
           password: values.password,
           name: `${values.firstName} ${values.lastName}`,
         }).unwrap();
-        // On successful registration, navigate to login page
+        dispatch(
+          showSnackbar({
+            message: "Sign up successful",
+            severity: "success",
+          })
+        );
         navigate("/login");
       } catch (err) {
         console.error("Failed to sign up:", err);
+
+        if (err?.data?.data?.email) {
+          setFieldError("email", err.data.data.email);
+        } else {
+          dispatch(
+            showSnackbar({
+              message: err?.data?.message || "Failed to sign up",
+              severity: "error",
+            })
+          );
+        }
       }
     },
   });
@@ -74,8 +92,16 @@ const SignUp = () => {
 
       // Navigate to login on success
       navigate("/login");
-    } catch (err) {
-      console.error("Failed to sign up with Google:", err);
+    } catch (error) {
+      if (error?.data?.data) {
+        dispatch(
+          showSnackbar({
+            message: error.data?.data?.email || "Failed to sign up",
+            severity: "error",
+          })
+        );
+      }
+      console.error("Failed to sign up with Google:", error);
     }
   };
 
